@@ -223,16 +223,16 @@ D/2维度的输出编码。
 
   ##### 符号约定
 
-  - $t$ ：当前时间步编号
-  - $l$ ：RNN层编号
-  - $L$：总堆叠层数
-  - $x_t$：第 $t$ 个时间步的输入编码
-  - $h_t^l$：表示第l层在时间步t后的隐状态，特别的，$h_0^l$ 表示初始隐状态，由初始状态编码器计算
-  - $z_t^l$：表示第t个时间步后，第l层的纵向输入 ，特别的，$z_t^1=x_t$
-  - $u_t^l$：表示第l层在时间步t后的纵向输出，$z_t^l=u_t^{l-1}$，传给下一层
-  - $W_{gate,z}^l，W_{gate,h}^l，W_{value,z}^l,W_{value,h}^l$：表示第l层状态转移的各个变换矩阵
-  - $W_{out,z}^l，W_{out,h}^l$：表示第l层纵向输出的各个变换矩阵
-  - $bias_{gate}^l,bias_{value}^l,bias_{out}^l$：表示各层的偏置
+  - $t$ ：当前时间步编号。
+  - $l$ ：RNN层编号。
+  - $L$：总堆叠层数。
+  - $x_t$：第 $t$ 个时间步的输入编码。
+  - $h_t^l$：表示第l层在时间步t后的隐状态，特别的，$h_0^l$ 表示初始隐状态，由初始状态编码器计算。
+  - $z_t^l$：表示第l层在第t个时间步的纵向输入。
+  - $u_t^l$：表示第l层在第t个时间步的纵向输出，$z_t^l=u_t^{l-1}$，特别的，$z_t^1=x_t$ 。
+  - $W_{gate,z}^l，W_{gate,h}^l，W_{value,z}^l,W_{value,h}^l$：表示第l层状态转移的各个变换矩阵。
+  - $W_{out,z}^l，W_{out,h}^l$：表示第l层纵向输出的各个变换矩阵。
+  - $bias_{gate}^l,bias_{value}^l,bias_{out}^l$：表示各层的偏置。
 
 ##### 维度大小
 
@@ -250,6 +250,7 @@ D/2维度的输出编码。
   - 计算 $value_t^l=z_t^lW_{value,z}^l+h_{t-1}^lW_{value,h}^l+bias_{value}^l$
   - 计算 $h_t^l=h_{t-1}^l+gate_t^l\odot value_t^l$
   - 计算 $u_t^l=z_t^l+ReLU(z_t^lW_{out,z}^l+h_t^lW_{out,h}^l+bias_{out}^l)$
+  - 计算 $z_t^{l+1}=u_t^l$
 
 
 
