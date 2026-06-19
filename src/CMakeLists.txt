@@ -1,0 +1,7 @@
+add_subdirectory(game)
+add_subdirectory(server)
+add_subdirectory(ai)
+add_subdirectory(trainer)
+add_subdirectory(analyzer)
+add_subdirectory(simulator)
+add_subdirectory(app)
