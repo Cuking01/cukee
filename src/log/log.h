@@ -8,81 +8,9 @@
 #include <variant>
 #include <vector>
 
+#include "tile.h"
+
 namespace cukee::log {
-
-struct 牌_T {
-    char 门{};
-    uint8_t 编号{};
-    bool 红宝牌{};
-
-    [[nodiscard]] uint8_t encode() const
-    {
-        if (红宝牌) {
-            if (门 == 'm' && 编号 == 4) {
-                return 34;
-            }
-            if (门 == 'p' && 编号 == 4) {
-                return 35;
-            }
-            if (门 == 's' && 编号 == 4) {
-                return 36;
-            }
-            throw std::invalid_argument("invalid red tile");
-        }
-
-        if (门 == 'm' && 编号 < 9) {
-            return 编号;
-        }
-        if (门 == 'p' && 编号 < 9) {
-            return static_cast<uint8_t>(9 + 编号);
-        }
-        if (门 == 's' && 编号 < 9) {
-            return static_cast<uint8_t>(18 + 编号);
-        }
-        if (门 == 'z' && 编号 < 7) {
-            return static_cast<uint8_t>(27 + 编号);
-        }
-
-        throw std::invalid_argument("invalid tile");
-    }
-
-    [[nodiscard]] std::size_t save_size() const
-    {
-        return 1;
-    }
-
-    void save(uint8_t* p) const
-    {
-        p[0] = encode();
-    }
-
-    static 牌_T decode(uint8_t encoding)
-    {
-        encoding &= 0x3f;
-        if (encoding < 9) {
-            return 牌_T{'m', encoding, false};
-        }
-        if (encoding < 18) {
-            return 牌_T{'p', static_cast<uint8_t>(encoding - 9), false};
-        }
-        if (encoding < 27) {
-            return 牌_T{'s', static_cast<uint8_t>(encoding - 18), false};
-        }
-        if (encoding < 34) {
-            return 牌_T{'z', static_cast<uint8_t>(encoding - 27), false};
-        }
-        if (encoding == 34) {
-            return 牌_T{'m', 4, true};
-        }
-        if (encoding == 35) {
-            return 牌_T{'p', 4, true};
-        }
-        if (encoding == 36) {
-            return 牌_T{'s', 4, true};
-        }
-        throw std::invalid_argument("invalid tile encoding");
-    }
-};
 
 enum class 副露类型_T : uint8_t {
     吃,
@@ -131,7 +59,7 @@ struct 打牌_Event_T {
 
     void save(uint8_t* p) const
     {
-        p[0] = 牌.encode();
+        p[0] = 牌.to_37_index();
         if (立直宣告) {
             p[0] |= 0x40;
         }
@@ -183,7 +111,7 @@ struct 暗杠_Event_T {
 
     void save(uint8_t* p) const
     {
-        p[0] = 牌.encode();
+        p[0] = 牌.to_37_index();
         if (摸杠) {
             p[0] |= 0x40;
         }
@@ -202,7 +130,7 @@ struct 加杠_Event_T {
 
     void save(uint8_t* p) const
     {
-        p[0] = 牌.encode();
+        p[0] = 牌.to_37_index();
         if (摸杠) {
             p[0] |= 0x40;
         }
@@ -350,8 +278,7 @@ struct 小局_T {
         }
 
         for (const auto& 牌 : 牌山) {
-            牌.save(cursor);
-            ++cursor;
+            *cursor++ = 牌.to_37_index();
         }
 
         std::size_t saved_event_count = 0;
@@ -414,7 +341,7 @@ struct 小局_T {
         }
 
         for (auto& 牌 : 牌山) {
-            牌 = 牌_T::decode(*cursor++);
+            牌 = 牌_T::from_37_index(*cursor++ & 0x3f);
         }
 
         const uint16_t event_count = static_cast<uint16_t>(cursor[0])
@@ -513,7 +440,7 @@ struct 小局_T {
                 const uint8_t byte = *cursor++;
                 打牌_Event_T event;
                 event.actor = current_actor;
-                event.牌 = 牌_T::decode(byte & 0x3f);
+                event.牌 = 牌_T::from_37_index(byte & 0x3f);
                 event.立直宣告 = (byte & 0x40) != 0;
                 event.摸切 = (byte & 0x80) != 0;
                 events.emplace_back(event);
@@ -566,7 +493,7 @@ struct 小局_T {
                 const uint8_t byte = *cursor++;
                 暗杠_Event_T event;
                 event.actor = current_actor;
-                event.牌 = 牌_T::decode(byte & 0x3f);
+                event.牌 = 牌_T::from_37_index(byte & 0x3f);
                 event.摸杠 = (byte & 0x40) != 0;
                 events.emplace_back(event);
                 need_draw = true;
@@ -579,7 +506,7 @@ struct 小局_T {
                 const uint8_t byte = *cursor++;
                 加杠_Event_T event;
                 event.actor = current_actor;
-                event.牌 = 牌_T::decode(byte & 0x3f);
+                event.牌 = 牌_T::from_37_index(byte & 0x3f);
                 event.摸杠 = (byte & 0x40) != 0;
                 events.emplace_back(event);
                 need_draw = true;

@@ -8,6 +8,7 @@
   - `mortal.md`：Mortal 项目设计参考梳理
 - `cmake/`：`CMake` 配置辅助文件目录
 - `src/`：源码目录
+  - `common/`：公共基础类型和工具模块
   - `ai/`：AI 网络训练与推理模块
   - `analyzer/`：牌谱分析器模块
   - `app/`：当前可执行程序入口
