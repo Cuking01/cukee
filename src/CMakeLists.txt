@@ -1,4 +1,5 @@
 add_subdirectory(game)
+add_subdirectory(log)
 add_subdirectory(server)
 add_subdirectory(ai)
 add_subdirectory(trainer)
