@@ -6,6 +6,7 @@
   - `log.md`：牌谱数据结构和文件格式设计
   - `model.md`：CuKee 模型架构设计
   - `mortal.md`：Mortal 项目设计参考梳理
+  - `simulator.md`：对战模拟器设计
 - `cmake/`：`CMake` 配置辅助文件目录
 - `src/`：源码目录
   - `common/`：公共基础类型和工具模块
