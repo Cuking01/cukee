@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -547,11 +548,19 @@ struct 小局_T {
 };
 
 struct 牌谱_T {
+    std::array<uint8_t, 4> player_ranks{};
+    std::array<std::string, 4> player_names{};
     std::vector<小局_T> 小局{};
 
     [[nodiscard]] std::size_t save_size() const
     {
-        std::size_t size = 2;
+        std::size_t size = 4 + 4 + 2;
+        for (const auto& name : player_names) {
+            if (name.size() > 0xff) {
+                throw std::invalid_argument("player name is too long");
+            }
+            size += name.size();
+        }
         for (const auto& round : 小局) {
             size += round.save_size();
         }
@@ -565,6 +574,24 @@ struct 牌谱_T {
         }
 
         uint8_t* cursor = p;
+        for (const auto rank : player_ranks) {
+            if (rank > 5) {
+                throw std::invalid_argument("invalid player rank");
+            }
+            *cursor++ = rank;
+        }
+
+        for (const auto& name : player_names) {
+            if (name.size() > 0xff) {
+                throw std::invalid_argument("player name is too long");
+            }
+            const auto name_size = static_cast<uint8_t>(name.size());
+            *cursor++ = name_size;
+            for (const auto ch : name) {
+                *cursor++ = static_cast<uint8_t>(ch);
+            }
+        }
+
         const auto round_count = static_cast<uint16_t>(小局.size());
         cursor[0] = static_cast<uint8_t>(round_count & 0xff);
         cursor[1] = static_cast<uint8_t>((round_count >> 8) & 0xff);
@@ -579,6 +606,19 @@ struct 牌谱_T {
     const uint8_t* load(const uint8_t* p)
     {
         const uint8_t* cursor = p;
+        for (auto& rank : player_ranks) {
+            rank = *cursor++;
+            if (rank > 5) {
+                throw std::invalid_argument("invalid player rank");
+            }
+        }
+
+        for (auto& name : player_names) {
+            const auto name_size = static_cast<std::size_t>(*cursor++);
+            name.assign(reinterpret_cast<const char*>(cursor), name_size);
+            cursor += name_size;
+        }
+
         const uint16_t round_count = static_cast<uint16_t>(cursor[0])
             | static_cast<uint16_t>(cursor[1] << 8);
         cursor += 2;
