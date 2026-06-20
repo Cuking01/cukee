@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <optional>
 #include <random>
-#include <string>
 #include <vector>
 
 #include "log.h"
@@ -13,12 +12,7 @@
 
 namespace cukee::simulator {
 
-class Role;
-
-struct Player_Info {
-    uint8_t rank{};
-    std::string name{};
-};
+class Game;
 
 enum class Phase {
     小局开始前,
@@ -87,14 +81,9 @@ struct 包牌_State {
 };
 
 struct Simulator_State {
-    explicit Simulator_State(std::array<Role*, 4> roles);
+    explicit Simulator_State(Game* game);
 
-    const log::牌谱_T* replay_log{};
-    log::牌谱_T* record_log{};
-    std::array<Role*, 4> roles;
-    std::array<Player_Info, 4> players{};
-    bool replay_mode{};
-    uint64_t seed{};
+    Game* game{};
     std::size_t 小局_index{};
 
     uint8_t 场风{};
@@ -118,12 +107,16 @@ struct Simulator_State {
     bool 全场有鸣牌{};
     std::array<bool, 4> 被鸣牌{};
     uint8_t current_actor{};
+    bool 需要摸牌{true};
+    bool 下次摸岭上牌{};
     Phase phase{Phase::小局开始前};
 
     void load_player_info_from_replay_log();
     void sync_player_info_to_record_log() const;
     void reset_小局_state();
     void prepare_牌山(const std::array<牌_T, 136>* specified_wall = nullptr);
+    void apply_event(const log::牌谱_Event& event);
+    void record_event(const log::牌谱_Event& event);
 };
 
 } // namespace cukee::simulator
